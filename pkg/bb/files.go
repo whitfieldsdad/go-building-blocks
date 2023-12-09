@@ -14,12 +14,23 @@ import (
 	"github.com/spf13/afero/tarfs"
 )
 
+type FileOptions struct {
+	IncludeAll        bool `json:"include_all,omitempty"`
+	IncludeFileHashes bool `json:"include_file_hashes,omitempty"`
+}
+
+func NewFileOptions() *FileOptions {
+	return &FileOptions{
+		IncludeAll: true,
+	}
+}
+
 type File struct {
-	Path      string  `json:"path" yaml:"path"`
-	Directory string  `json:"directory,omitempty" yaml:"directory,omitempty"`
-	Filename  string  `json:"filename" yaml:"filename"`
-	Size      *int    `json:"size,omitempty" yaml:"size,omitempty"`
-	Hashes    *Hashes `json:"hashes,omitempty" yaml:"hashes,omitempty"`
+	Path      string  `json:"path"`
+	Directory string  `json:"directory,omitempty"`
+	Filename  string  `json:"filename"`
+	Size      *int    `json:"size,omitempty"`
+	Hashes    *Hashes `json:"hashes,omitempty"`
 }
 
 func NewFile(path string) *File {
@@ -30,22 +41,27 @@ func NewFile(path string) *File {
 	}
 }
 
-func GetFile(path string) (*File, error) {
+func GetFile(path string, opts *FileOptions) (*File, error) {
 	file := NewFile(path)
-
 	info, err := os.Stat(path)
 	if err != nil {
 		return file, err
 	}
+	if opts == nil {
+		opts = NewFileOptions()
+	}
 	sz := int(info.Size())
 	file.Size = &sz
-	file.Hashes, _ = GetFileHashes(path)
+
+	if opts.IncludeAll || opts.IncludeFileHashes {
+		file.Hashes, _ = GetFileHashes(path)
+	}
 	return file, nil
 }
 
 type FileFilter struct {
-	FilenamePatterns []string `json:"filenames" yaml:"filenames"`
-	PathPatterns     []string `json:"paths" yaml:"paths"`
+	FilenamePatterns []string `json:"filenames"`
+	PathPatterns     []string `json:"paths"`
 }
 
 func (f FileFilter) Matches(path string, info os.FileInfo) (bool, error) {

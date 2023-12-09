@@ -12,18 +12,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	IncludeParentProcesses = true
-	IncludeCommandOutput   = true
-)
-
 type CommandOptions struct {
-	IncludeParentProcesses bool `json:"include_parent_processes" yaml:"include_parent_processes"`
-	IncludeCommandOutput   bool `json:"include_command_output" yaml:"include_command_output"`
+	IncludeAll             bool            `json:"include_all,omitempty"`
+	IncludeOutput          bool            `json:"include_output,omitempty"`
+	IncludeParentProcesses bool            `json:"include_parent_processes,omitempty"`
+	ProcessOptions         *ProcessOptions `json:"process_options,omitempty"`
 }
 
 func NewCommandOptions() *CommandOptions {
-	return &CommandOptions{}
+	return &CommandOptions{
+		IncludeAll: true,
+	}
 }
 
 type Command struct {
@@ -73,7 +72,7 @@ func ExecuteCommand(ctx context.Context, command, commandType string, opts *Comm
 		return nil, errors.Wrap(err, "failed to wrap command")
 	}
 	startTime := time.Now()
-	process, err := executeArgv(ctx, argv)
+	process, err := executeArgv(ctx, argv, opts)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to execute command")
 	}
@@ -83,7 +82,7 @@ func ExecuteCommand(ctx context.Context, command, commandType string, opts *Comm
 	if opts.IncludeParentProcesses {
 		pid := os.Getpid()
 		tree, _ = GetProcessAncestors(pid)
-		self, err := GetProcess(pid)
+		self, err := GetProcess(pid, opts.ProcessOptions)
 		if err == nil {
 			tree = append(tree, *self)
 		}
@@ -100,7 +99,7 @@ func ExecuteCommand(ctx context.Context, command, commandType string, opts *Comm
 	return executedCommand, nil
 }
 
-func executeArgv(ctx context.Context, argv []string) (*Process, error) {
+func executeArgv(ctx context.Context, argv []string, opts *CommandOptions) (*Process, error) {
 	path, err := exec.LookPath(argv[0])
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find command")
@@ -121,7 +120,7 @@ func executeArgv(ctx context.Context, argv []string) (*Process, error) {
 
 	// Collect information about the subprocess.
 	pid := cmd.Process.Pid
-	process, err := GetProcess(pid)
+	process, err := GetProcess(pid, opts.ProcessOptions)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to collect process metadata")
 	}
