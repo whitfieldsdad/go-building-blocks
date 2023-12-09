@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/whitfieldsdad/go-building-blocks/pkg/bb"
 )
 
@@ -21,18 +20,6 @@ var processesCmd = &cobra.Command{
 			printJSON(process)
 		}
 	},
-}
-
-func getProcessOptions(flags *pflag.FlagSet) *bb.ProcessOptions {
-	includeAll, _ := flags.GetBool("include-all")
-	includeFileMetadata, _ := flags.GetBool("include-file-metadata")
-	includeFileHashes, _ := flags.GetBool("include-file-hashes")
-
-	return &bb.ProcessOptions{
-		IncludeAll:          includeAll,
-		IncludeFileMetadata: includeFileMetadata,
-		IncludeFileHashes:   includeFileHashes,
-	}
 }
 
 func init() {
