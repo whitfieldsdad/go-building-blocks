@@ -10,7 +10,7 @@ type CPU struct {
 	Vendor       string   `json:"vendor"`
 	TotalCores   int      `json:"total_cores"`
 	TotalThreads int      `json:"total_threads"`
-	Capabilities []string `json:"capabilities"`
+	Capabilities []string `json:"capabilities,omitempty"`
 }
 
 func ListCPUs() ([]CPU, error) {
