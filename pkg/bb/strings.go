@@ -24,13 +24,12 @@ func StringContainsNonPrintableCharacters(s string) bool {
 }
 
 func RemoveNonPrintableCharactersFromString(s string) string {
-	if StringContainsNonPrintableCharacters(s) {
-		var result []rune
-		for _, r := range s {
-			if unicode.IsPrint(r) {
-				result = append(result, r)
-			}
+	var result []rune
+	for _, r := range s {
+		if unicode.IsPrint(r) {
+			result = append(result, r)
 		}
 	}
+	s = string(result)
 	return s
 }
