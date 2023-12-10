@@ -78,13 +78,7 @@ func GetProcess(pid int, opts *ProcessOptions) (*Process, error) {
 	if err == nil {
 		user, _ = GetUser(username)
 	}
-	id, err := GetProcessUUID(pid, ppid)
-	if err != nil {
-		return nil, err
-	}
 	return &Process{
-		Id:          id,
-		Time:        time.Now(),
 		Name:        name,
 		PID:         pid,
 		PPID:        &ppid,
@@ -95,14 +89,6 @@ func GetProcess(pid int, opts *ProcessOptions) (*Process, error) {
 		CommandLine: cmdline,
 		CreateTime:  startTime,
 	}, nil
-}
-
-func GetProcessUUID(pid, ppid int) (string, error) {
-	m := map[string]interface{}{
-		"pid":  pid,
-		"ppid": ppid,
-	}
-	return NewUUID5FromMap(DefaultUUIDNamespace, m)
 }
 
 func ListProcesses(opts *ProcessOptions) ([]Process, error) {
