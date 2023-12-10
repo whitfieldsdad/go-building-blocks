@@ -120,15 +120,3 @@ func ListProcesses(opts *ProcessOptions) ([]Process, error) {
 	}
 	return processes, nil
 }
-
-func GetProcessAncestors(pid int) ([]Process, error) {
-	panic("not implemented")
-}
-
-func GetProcessDescendants(pid int) ([]Process, error) {
-	panic("not implemented")
-}
-
-func GetProcessSiblings(pid int) ([]Process, error) {
-	panic("not implemented")
-}
