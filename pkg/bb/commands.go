@@ -3,7 +3,6 @@ package bb
 import (
 	"bytes"
 	"context"
-	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -13,10 +12,9 @@ import (
 )
 
 type CommandOptions struct {
-	IncludeAll             bool            `json:"include_all,omitempty"`
-	IncludeOutput          bool            `json:"include_output,omitempty"`
-	IncludeParentProcesses bool            `json:"include_parent_processes,omitempty"`
-	ProcessOptions         *ProcessOptions `json:"process_options,omitempty"`
+	IncludeAll     bool            `json:"include_all,omitempty"`
+	IncludeOutput  bool            `json:"include_output,omitempty"`
+	ProcessOptions *ProcessOptions `json:"process_options,omitempty"`
 }
 
 func NewCommandOptions() *CommandOptions {
@@ -49,7 +47,7 @@ type ExecutedCommand struct {
 	Command     Command   `json:"command"`
 	ExitCode    int       `json:"exit_code"`
 	Process     Process   `json:"subprocess"`
-	ProcessTree []Process `json:"process_tree"`
+	ProcessTree []Process `json:"process_tree,omitempty"`
 }
 
 func (result ExecutedCommand) GetProcesses() []Process {
@@ -77,24 +75,13 @@ func ExecuteCommand(ctx context.Context, command, commandType string, opts *Comm
 		return nil, errors.Wrap(err, "failed to execute command")
 	}
 	endTime := time.Now()
-
-	var tree []Process
-	if opts.IncludeParentProcesses {
-		pid := os.Getpid()
-		tree, _ = GetProcessAncestors(pid)
-		self, err := GetProcess(pid, opts.ProcessOptions)
-		if err == nil {
-			tree = append(tree, *self)
-		}
-	}
 	executedCommand := &ExecutedCommand{
-		Id:          NewUUID4(),
-		StartTime:   startTime,
-		EndTime:     endTime,
-		Command:     Command{Command: command, Type: commandType},
-		ExitCode:    *process.ExitCode,
-		Process:     *process,
-		ProcessTree: tree,
+		Id:        NewUUID4(),
+		StartTime: startTime,
+		EndTime:   endTime,
+		Command:   Command{Command: command, Type: commandType},
+		ExitCode:  *process.ExitCode,
+		Process:   *process,
 	}
 	return executedCommand, nil
 }

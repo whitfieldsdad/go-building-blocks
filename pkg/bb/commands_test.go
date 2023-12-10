@@ -18,13 +18,3 @@ func TestExecuteNativeCommand(t *testing.T) {
 	// Ensure that we only look up the subprocess by default.
 	assert.Equal(t, 1, len(result.GetProcesses()))
 }
-
-func TestExecuteCommandAndIncludeParentProcesses(t *testing.T) {
-	opts := &CommandOptions{
-		IncludeParentProcesses: true,
-	}
-	result, err := ExecuteCommand(context.Background(), "whoami", string(DefaultCommandType), opts)
-	assert.Nil(t, err)
-	assert.NotNil(t, result)
-	assert.Greater(t, len(result.GetProcesses()), 1)
-}

@@ -6,6 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestListUsers(t *testing.T) {
+	users, err := ListUsers()
+	assert.Nil(t, err)
+	assert.NotNil(t, users)
+	assert.True(t, len(users) > 0)
+}
+
 func TestGetCurrentUser(t *testing.T) {
 	user, err := GetCurrentUser()
 	assert.Nil(t, err)
