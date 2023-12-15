@@ -10,44 +10,50 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewEncryptedTarball(writer io.Writer, filePaths []string, password string) (io.Writer, error) {
-	if password == "" {
-		return nil, errors.New("password cannot be empty")
+func NewEncryptedTarball(w io.Writer, files []string, password string) error {
+	gw := gzip.NewWriter(w)
+	defer gw.Close()
+
+	tw := tar.NewWriter(gw)
+	defer tw.Close()
+
+	for _, file := range files {
+		err := addFileToTarFile(file, tw)
+		if err != nil {
+			return errors.Wrapf(err, "failed to add file to archive: %s", file)
+		}
 	}
-	tarWriter, err := NewTarball(writer, filePaths)
-	if err != nil {
-		return nil, err
-	}
-	defer tarWriter.Close()
 
 	identity, err := age.NewScryptRecipient(password)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create scrypt identity")
+		return errors.Wrap(err, "failed to create scrypt identity")
 	}
-	w, err := age.Encrypt(tarWriter, identity)
+	ew, err := age.Encrypt(tw, identity)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to encrypt tarball")
+		return errors.Wrap(err, "failed to encrypt tarball")
 	}
-	return w, nil
+	defer ew.Close()
+
+	return nil
 }
 
-func NewTarball(w io.Writer, filePaths []string) (*tar.Writer, error) {
-	gzw := gzip.NewWriter(w)
-	defer gzw.Close()
+func NewTarball(w io.Writer, files []string) error {
+	gw := gzip.NewWriter(w)
+	defer gw.Close()
 
-	tw := tar.NewWriter(gzw)
+	tw := tar.NewWriter(gw)
 	defer tw.Close()
 
-	for _, f := range filePaths {
-		err := tarFile(f, tw)
+	for _, file := range files {
+		err := addFileToTarFile(file, tw)
 		if err != nil {
-			errors.Wrapf(err, "failed to add file %s to tar writer", f)
+			return errors.Wrapf(err, "failed to add file to archive: %s", file)
 		}
 	}
-	return tw, nil
+	return nil
 }
 
-func tarFile(path string, w *tar.Writer) error {
+func addFileToTarFile(path string, w *tar.Writer) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return errors.Wrap(err, "failed to open file")
