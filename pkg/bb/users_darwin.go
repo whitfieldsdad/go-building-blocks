@@ -1,5 +1,5 @@
 package bb
 
-func listServices(opts *ProcessOptions) ([]Service, error) {
+func listUsers() ([]User, error) {
 	return nil, nil
 }
