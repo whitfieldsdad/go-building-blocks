@@ -43,6 +43,56 @@ func (t *ProcessTree) RemoveProcesses(pids ...int) {
 	}
 }
 
+func (t ProcessTree) IsParent(pid, ppid int) bool {
+	found, ok := t.pidToPpid[pid]
+	if !ok {
+		return false
+	}
+	return found == ppid
+}
+
+func (t ProcessTree) IsSibling(pid, siblingPid int) bool {
+	if pid == siblingPid {
+		return false
+	}
+	ppid, ok := t.GetParentPid(pid)
+	if !ok {
+		return false
+	}
+	return t.IsChild(siblingPid, ppid)
+}
+
+func (t ProcessTree) IsChild(pid, ppid int) bool {
+	found, ok := t.pidToPpid[pid]
+	if !ok {
+		return false
+	}
+	return found == ppid
+}
+
+func (t ProcessTree) IsAncestor(pid, ancestorPid int) bool {
+	ancestors := t.GetAncestorPids(pid)
+	if len(ancestors) == 0 {
+		return false
+	}
+	for _, ancestor := range ancestors {
+		if ancestor == ancestorPid {
+			return true
+		}
+	}
+	return false
+}
+
+func (t ProcessTree) IsDescendant(pid, descendantPid int) bool {
+	descendants := t.GetDescendantPids(pid)
+	for _, descendant := range descendants {
+		if descendant == descendantPid {
+			return true
+		}
+	}
+	return false
+}
+
 func (t ProcessTree) GetAncestorPids(pid int) []int {
 	ancestors := []int{}
 	for {
